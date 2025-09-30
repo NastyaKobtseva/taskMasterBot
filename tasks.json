@@ -573,5 +573,28 @@
     ],
     "waitingCustomRemind": null,
     "waitingDeadlineChange": null
+  },
+  {
+    "id": 49,
+    "title": "зробити нагадування",
+    "authorName": "KobtsevaAnastasiia",
+    "authorId": 1381903592,
+    "status": "Виконано ✅",
+    "chatId": -1003144741959,
+    "createdAt": 1759232736555,
+    "deadline": "2025-09-30T13:47:00.000Z",
+    "reminded": false,
+    "category": "Термінова",
+    "priority": "високий",
+    "takenByName": "Anastasiia_Kobtseva",
+    "takenById": 7890927533,
+    "mentionedUsername": "Anastasiia_Kobtseva",
+    "remindedNotTaken": false,
+    "reminderMinutes": null,
+    "sentReminders": [
+      2
+    ],
+    "waitingCustomRemind": null,
+    "waitingDeadlineChange": null
   }
 ]

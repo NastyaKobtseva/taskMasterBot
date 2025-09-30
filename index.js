@@ -1,4 +1,7 @@
 // варінт 1
+import dotenv from "dotenv";
+dotenv.config();
+
 import TelegramBot from "node-telegram-bot-api";
 import express from "express";
 import moment from "moment-timezone";
@@ -6,8 +9,8 @@ import fs from "fs";
 import path from "path";
 
 // ====== Налаштування ======
-const TELEGRAM_TOKEN = "7565367340:AAF_fdeKy4dgteuAlMo-sCPQ0IJKSSijwS4";
-const TIMEZONE = "Europe/Kiev";
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const TIMEZONE = process.env.TIMEZONE || "Europe/Kiev";
 const TASKS_FILE = path.join(process.cwd(), "tasks.json");
 const USERS_FILE = path.join(process.cwd(), "userIds.json");
 
