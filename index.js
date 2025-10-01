@@ -1,4 +1,4 @@
-// варінт 1
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -458,7 +458,7 @@ bot.onText(/\/tasks$/, (msg) => {
   const chatId = msg.chat.id;
   if (tasks.length === 0) return bot.sendMessage(chatId, "📭 Задач поки немає");
 
-  const activeTasks = tasks.filter(t => t.status !== "Виконано ✅");
+  const activeTasks = tasks.filter(t => t.status !== "Виконано ✅" && t.chatId === chatId);
   if (activeTasks.length === 0) return bot.sendMessage(chatId, "✅ Всі задачі виконані!");
 
   activeTasks.forEach(task => {
@@ -484,8 +484,8 @@ bot.onText(/\/tasks_status/, (msg) => {
   const chatId = msg.chat.id;
   if (tasks.length === 0) return bot.sendMessage(chatId, "📭 Задач поки немає");
 
-  const incomplete = tasks.filter(t => t.status !== "Виконано ✅");
-  const completed = tasks.filter(t => t.status === "Виконано ✅");
+  const incomplete = tasks.filter(t => t.status !== "Виконано ✅" && t.chatId === chatId);
+  const completed = tasks.filter(t => t.status === "Виконано ✅" && t.chatId === chatId);
 
   let text = "📊 *Статус задач:*\n\n";
   text += "📌 *Активні:*\n";
@@ -677,100 +677,187 @@ let lastDailyReport = null;
 // ✅ ВИПРАВЛЕННЯ 3: Щоденний звіт о 18:00
 
 // варіант 2
+// setInterval(() => {
+//   const now = moment().tz(TIMEZONE);
+//   const today = now.format("YYYY-MM-DD");
+  
+//   // Перевіряємо, чи саме 18:00
+//   if (now.hour() === 18 && now.minute() === 0 && lastDailyReport !== today) {
+//     lastDailyReport = today;
+
+//     const activeTasks = tasks.filter(t => t.status !== "Виконано ✅");
+//     const completedTasks = tasks.filter(t => 
+//       {
+//         if (t.status !== "Виконано ✅") return false;
+//         if (!t.completedAt) return false;
+//         const completedDate = moment(t.completedAt).tz(TIMEZONE);
+//         return completedDate.isSame(now, "day");
+//         }
+//     );
+    
+//     if (activeTasks.length === 0 && completedTasks.length === 0) return;
+
+//     let text = "📊 *Щоденний звіт:*\n\n";
+    
+//     // Активні задачі
+//     text += "📌 *Невиконані задачі:*\n";
+//     if (activeTasks.length === 0) {
+//       text += "_немає_\n";
+//     } else {
+//       activeTasks.forEach(task => {
+//         const deadlineStr = task.deadline ? moment(task.deadline).tz(TIMEZONE).format("DD.MM HH:mm") : "не вказано";
+//         const responsible = task.takenByName || (task.mentionedUsername ? `@${task.mentionedUsername}` : "не призначено");
+//         text += `#${task.id} - ${task.title}\n   Відповідальний: ${responsible}\n   Дедлайн: ${deadlineStr}\n\n`;
+//       });
+//     }
+    
+//     // Виконані задачі
+//     text += "✅ *Виконані сьогодні:*\n";
+//     if (completedTasks.length === 0) {
+//       text += "_немає_\n";
+//     } else {
+//       completedTasks.forEach(task => {
+//         const responsible = task.takenByName || task.authorName;
+//         text += `#${task.id} - ${task.title} (${responsible})\n`;
+//       });
+//     }
+
+//     // Надсилаємо всім користувачам
+//     // Object.values(userIds).forEach(uid => {
+//     //   safeSendMessage(uid, text, { parse_mode: "Markdown" })
+//     //     .catch(() => console.log(`Не вдалось надіслати звіт користувачу ${uid}`));
+//     // });
+//     // Перевіряємо, чи всі користувачі зареєстровані
+//     const allUsersRegistered = Object.keys(userIds).length > 0;
+//     let hasUnregisteredUsers = false;
+    
+//     // Перевіряємо наявність незареєстрованих користувачів
+//     const allUsernames = new Set();
+//     tasks.forEach(task => {
+//       if (task.authorName && task.authorName.startsWith('@') === false) {
+//         allUsernames.add(task.authorName);
+//       }
+//       if (task.takenByName && task.takenByName.startsWith('@') === false) {
+//         allUsernames.add(task.takenByName);
+//       }
+//       if (task.mentionedUsername) {
+//         allUsernames.add(task.mentionedUsername);
+//       }
+//     });
+
+//     // Перевіряємо чи є хтось незареєстрований
+//     allUsernames.forEach(username => {
+//       if (!userIds[username]) {
+//         hasUnregisteredUsers = true;
+//       }
+//     });
+
+//     // Відправляємо звіт
+//     if (hasUnregisteredUsers) {
+//       // Якщо є незареєстровані - відправляємо в групу
+//       const groupChatIds = new Set();
+//       tasks.forEach(task => {
+//         if (task.chatId) groupChatIds.add(task.chatId);
+//       });
+      
+//       groupChatIds.forEach(chatId => {
+//         safeSendMessage(chatId, text, { parse_mode: "Markdown" })
+//           .catch(() => console.log(`Не вдалось надіслати звіт у чат ${chatId}`));
+//       });
+//     } else {
+//       // Всі зареєстровані - відправляємо приватно
+//       Object.values(userIds).forEach(uid => {
+//         safeSendMessage(uid, text, { parse_mode: "Markdown" })
+//           .catch(() => console.log(`Не вдалось надіслати звіт користувачу ${uid}`));
+//       });
+//     }
+//   }
+// }, 60 * 1000);
 setInterval(() => {
   const now = moment().tz(TIMEZONE);
   const today = now.format("YYYY-MM-DD");
   
-  // Перевіряємо, чи саме 18:00
   if (now.hour() === 18 && now.minute() === 0 && lastDailyReport !== today) {
     lastDailyReport = today;
 
-    const activeTasks = tasks.filter(t => t.status !== "Виконано ✅");
-    const completedTasks = tasks.filter(t => 
-      {
-        if (t.status !== "Виконано ✅") return false;
-        if (!t.completedAt) return false;
+    // Групуємо задачі по chatId (групам)
+    const tasksByChat = {};
+    tasks.forEach(task => {
+      if (!tasksByChat[task.chatId]) {
+        tasksByChat[task.chatId] = [];
+      }
+      tasksByChat[task.chatId].push(task);
+    });
+
+    // Для кожної групи формуємо звіт
+    Object.entries(tasksByChat).forEach(([chatId, chatTasks]) => {
+      const activeTasks = chatTasks.filter(t => t.status !== "Виконано ✅");
+      const completedToday = chatTasks.filter(t => {
+        if (t.status !== "Виконано ✅" || !t.completedAt) return false;
         const completedDate = moment(t.completedAt).tz(TIMEZONE);
         return completedDate.isSame(now, "day");
-        }
-    );
-    
-    if (activeTasks.length === 0 && completedTasks.length === 0) return;
-
-    let text = "📊 *Щоденний звіт:*\n\n";
-    
-    // Активні задачі
-    text += "📌 *Невиконані задачі:*\n";
-    if (activeTasks.length === 0) {
-      text += "_немає_\n";
-    } else {
-      activeTasks.forEach(task => {
-        const deadlineStr = task.deadline ? moment(task.deadline).tz(TIMEZONE).format("DD.MM HH:mm") : "не вказано";
-        const responsible = task.takenByName || (task.mentionedUsername ? `@${task.mentionedUsername}` : "не призначено");
-        text += `#${task.id} - ${task.title}\n   Відповідальний: ${responsible}\n   Дедлайн: ${deadlineStr}\n\n`;
-      });
-    }
-    
-    // Виконані задачі
-    text += "✅ *Виконані сьогодні:*\n";
-    if (completedTasks.length === 0) {
-      text += "_немає_\n";
-    } else {
-      completedTasks.forEach(task => {
-        const responsible = task.takenByName || task.authorName;
-        text += `#${task.id} - ${task.title} (${responsible})\n`;
-      });
-    }
-
-    // Надсилаємо всім користувачам
-    // Object.values(userIds).forEach(uid => {
-    //   safeSendMessage(uid, text, { parse_mode: "Markdown" })
-    //     .catch(() => console.log(`Не вдалось надіслати звіт користувачу ${uid}`));
-    // });
-    // Перевіряємо, чи всі користувачі зареєстровані
-    const allUsersRegistered = Object.keys(userIds).length > 0;
-    let hasUnregisteredUsers = false;
-    
-    // Перевіряємо наявність незареєстрованих користувачів
-    const allUsernames = new Set();
-    tasks.forEach(task => {
-      if (task.authorName && task.authorName.startsWith('@') === false) {
-        allUsernames.add(task.authorName);
-      }
-      if (task.takenByName && task.takenByName.startsWith('@') === false) {
-        allUsernames.add(task.takenByName);
-      }
-      if (task.mentionedUsername) {
-        allUsernames.add(task.mentionedUsername);
-      }
-    });
-
-    // Перевіряємо чи є хтось незареєстрований
-    allUsernames.forEach(username => {
-      if (!userIds[username]) {
-        hasUnregisteredUsers = true;
-      }
-    });
-
-    // Відправляємо звіт
-    if (hasUnregisteredUsers) {
-      // Якщо є незареєстровані - відправляємо в групу
-      const groupChatIds = new Set();
-      tasks.forEach(task => {
-        if (task.chatId) groupChatIds.add(task.chatId);
       });
       
-      groupChatIds.forEach(chatId => {
+      if (activeTasks.length === 0 && completedToday.length === 0) return;
+
+      let text = "📊 *Щоденний звіт:*\n\n";
+      
+      text += "📌 *Невиконані задачі:*\n";
+      if (activeTasks.length === 0) {
+        text += "_немає_\n";
+      } else {
+        activeTasks.forEach(task => {
+          const deadlineStr = task.deadline ? moment(task.deadline).tz(TIMEZONE).format("DD.MM HH:mm") : "не вказано";
+          const responsible = task.takenByName || (task.mentionedUsername ? `@${task.mentionedUsername}` : "не призначено");
+          text += `#${task.id} - ${task.title}\n   Відповідальний: ${responsible}\n   Дедлайн: ${deadlineStr}\n\n`;
+        });
+      }
+      
+      text += "✅ *Виконані сьогодні:*\n";
+      if (completedToday.length === 0) {
+        text += "_немає_\n";
+      } else {
+        completedToday.forEach(task => {
+          const responsible = task.takenByName || task.authorName;
+          text += `#${task.id} - ${task.title} (${responsible})\n`;
+        });
+      }
+
+      // Збираємо користувачів, які мають отримати звіт з цієї групи
+      const usersInThisChat = new Set();
+      
+      chatTasks.forEach(task => {
+        // Додаємо автора
+        if (task.authorName) usersInThisChat.add(task.authorName);
+        // Додаємо виконавця
+        if (task.takenByName) usersInThisChat.add(task.takenByName);
+        // Додаємо призначеного
+        if (task.mentionedUsername) usersInThisChat.add(task.mentionedUsername);
+      });
+
+      // Перевіряємо, чи всі користувачі зареєстровані
+      let hasUnregisteredUsers = false;
+      usersInThisChat.forEach(username => {
+        if (!userIds[username]) {
+          hasUnregisteredUsers = true;
+        }
+      });
+
+      if (hasUnregisteredUsers) {
+        // Якщо є незареєстровані - відправляємо в групу
         safeSendMessage(chatId, text, { parse_mode: "Markdown" })
           .catch(() => console.log(`Не вдалось надіслати звіт у чат ${chatId}`));
-      });
-    } else {
-      // Всі зареєстровані - відправляємо приватно
-      Object.values(userIds).forEach(uid => {
-        safeSendMessage(uid, text, { parse_mode: "Markdown" })
-          .catch(() => console.log(`Не вдалось надіслати звіт користувачу ${uid}`));
-      });
-    }
+      } else {
+        // Всі зареєстровані - відправляємо приватно кожному учаснику
+        usersInThisChat.forEach(username => {
+          const userId = userIds[username];
+          if (userId) {
+            safeSendMessage(userId, text, { parse_mode: "Markdown" })
+              .catch(() => console.log(`Не вдалось надіслати звіт користувачу ${username}`));
+          }
+        });
+      }
+    });
   }
 }, 60 * 1000);
 
